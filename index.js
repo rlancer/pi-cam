@@ -19,7 +19,9 @@ function launchChrome(headless = true) {
 
   return launcher.run().then(() => launcher)
     .catch(err => {
+      console.error(err);
       return launcher.kill().then(() => { // Kill Chrome if there's an error.
+
         throw err;
       }, console.error);
     });
@@ -27,4 +29,4 @@ function launchChrome(headless = true) {
 
 launchChrome(true).then(launcher => {
   console.log('Launched chrome!');
-}).catch(err=>console.error(err));
+}).catch(err => console.error(err));
