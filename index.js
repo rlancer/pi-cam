@@ -1,23 +1,30 @@
-const CDP = require('chrome-remote-interface');
+const {ChromeLauncher} = require('lighthouse/lighthouse-cli/chrome-launcher');
 
-CDP((client) => {
-  // Extract used DevTools domains.
-  const {Page, Runtime} = client;
-
-  // Enable events on domains we are interested in.
-  Promise.all([
-    Page.enable()
-  ]).then(() => {
-    return Page.navigate({url: 'https://example.com'});
+/**
+ * Launches a debugging instance of Chrome on port 9222.
+ * @param {boolean=} headless True (default) to launch Chrome in headless mode.
+ *     Set to false to launch Chrome normally.
+ * @return {Promise<ChromeLauncher>}
+ */
+function launchChrome(headless = true) {
+  const launcher = new ChromeLauncher({
+    port: 9222,
+    autoSelectChrome: true, // False to manually select which Chrome install.
+    additionalFlags: [
+      '--window-size=412,732',
+      '--disable-gpu',
+      headless ? '--headless' : ''
+    ]
   });
 
-  // Evaluate outerHTML after page has loaded.
-  Page.loadEventFired(() => {
-    Runtime.evaluate({expression: 'document.body.outerHTML'}).then((result) => {
-      console.log(result.result.value);
-      client.close();
+  return launcher.run().then(() => launcher)
+    .catch(err => {
+      return launcher.kill().then(() => { // Kill Chrome if there's an error.
+        throw err;
+      }, console.error);
     });
-  });
-}).on('error', (err) => {
-  console.error('Cannot connect to browser:', err);
+}
+
+launchChrome(true).then(launcher => {
+  console.log('Launched chrome!');
 });
