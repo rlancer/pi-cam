@@ -27,4 +27,4 @@ function launchChrome(headless = true) {
 
 launchChrome(true).then(launcher => {
   console.log('Launched chrome!');
-});
+}).catch(err=>console.error(err));
